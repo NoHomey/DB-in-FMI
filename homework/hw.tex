@@ -1,0 +1,112 @@
+\documentclass[a4paper, 12pt, x11names]{article}
+
+\usepackage[T1, T2A]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[bulgarian]{babel}
+\usepackage[normalem]{ulem}
+
+\usepackage{amsmath}
+
+\usepackage{minted}
+
+\usepackage{tikz}
+\usetikzlibrary{er}
+\tikzset{multi attribute/.style={attribute, double distance =1.5pt}}
+\tikzset{every entity/.style={draw=orange, fill=orange!20}}
+\tikzset{every attribute/.style={draw=MediumPurple4, fill=MediumPurple1!20}}
+\tikzset{every relationship/.style={draw=Chartreuse4, fill=Chartreuse2!30}}
+\newcommand{\key}[1]{\underline{#1}}
+\newcommand{\univname}{Софиийски университет "Св. Климент Охридски"\\Факултет по математика и информатика}
+
+\setlength{\parindent}{0mm}
+
+\begin{document}
+\begin{titlepage}
+\begin{center}
+    
+\vspace*{.06\textheight}
+{\scshape\large \univname\par}\vspace{1.5cm}
+
+{\huge \bfseries{Домашна работа}\par}\vspace{0.7cm}
+\textsc{\small по}\\[0.6cm]
+\textsc{\Large Бази от данни}\\[0.5cm]
+\textsc{\normalsize спец. Информатика, 3 курс, летен семестър,}\\[0.5cm]
+\textsc{\normalsize учебна година 2018/19}\\[2cm]
+     
+\begin{minipage}[t]{0.4\textwidth}
+\begin{flushleft} \large
+{\large \today}\\[1cm]
+София
+\end{flushleft}
+\end{minipage}
+\begin{minipage}[t]{0.4\textwidth}
+\begin{flushright} \large
+\emph{Изготвил:}\\[0.5cm]
+Иво Алексеев Стратев\\[0.5cm]
+Фак. номер: 45342\\[0.2cm]
+Група: 3
+\end{flushright}
+\end{minipage}
+\end{center}
+\end{titlepage}
+
+\section{E/R диаграма}
+\begin{tikzpicture}[node distance=7em]
+\node[entity](student){Student};
+\node[attribute](number)[above of=student]{\key{number}}edge[line width=1.2pt](student);
+\node[attribute](name)[above left of=student]{name}edge[line width=1.2pt](student);
+\node[attribute](surname)[above right of=student]{surname}edge[line width=1.2pt](student);
+\node[relationship](application)[below of=student]{Application}edge[line width=1.2pt](student);
+\node[attribute](session)[above left of=application]{session}edge[line width=1.2pt](application);
+\node[attribute](grade)[right of=application]{grade}edge[line width=1.2pt](application);
+\node[attribute](date)[above right of=application]{date}edge[line width=1.2pt](application);
+\node[entity](exam)[below of=application]{Exam}edge[line width=1.2pt](application);
+\node[attribute](ename)[above left of=exam]{name}edge[line width=1.2pt](exam);
+\node[attribute](code)[left of=exam]{\key{code}}edge[line width=1.2pt](exam);
+\node[attribute](time)[below left of=exam]{time}edge[line width=1.2pt](exam);
+\node[attribute](duration)[below of=exam]{duration}edge[line width=1.2pt](exam);
+\node[attribute](edate)[below right of=exam]{date}edge[line width=1.2pt](exam);
+\node[relationship](offer)[right of=exam]{Offer}edge[line width=1.2pt](exam);
+\node[entity](faculty)[right of=offer]{Faculty}edge[<-,line width=1.2pt](offer);
+\node[attribute](fname)[above right of=faculty]{name}edge[line width=1.2pt](faculty);
+\node[attribute](fcode)[right of=faculty]{\key{code}}edge[line width=1.2pt](faculty);
+\node[attribute](address)[below right of=faculty]{address}edge[line width=1.2pt](faculty);
+\end{tikzpicture}
+\section{Преобразуване на E/R диаграмата до релационни схеми}
+\begin{align*}
+    Student(\key{number}, name, surname) \\
+    Exam(\key{code}, name, date, time, duration, \uwave{faculty}) \\
+    Faculty(\key{code}, name, address) \\
+    Application(\uwave{\key{number}}, \uwave{\key{code}}, date, session, grade)
+\end{align*}
+\subsection{Ограничения по референтна цялост}
+\begin{align*}
+    \pi_{faculty}(Exam) \subseteq \pi_{code}(Faculty) \\
+    \pi_{number}(Application) \subseteq \pi_{number}(Student) \\
+    \pi_{code}(Application) \subseteq \pi_{code}(Exam)
+\end{align*}
+\section{Функционални зависимости}
+\subsection{За Student}
+Има единствена нетривиална функционална зависимост \(number \to name, surname\).
+\(number\) е първичния ключ на релацията и следователно релацията \(Student\) е в НФБК, в частност е и в 3НФ.
+\subsection{За Exam}
+Има единствена нетривиална функционална зависимост \(code \to name, date, time, duration\).
+\(date, time, duration\) дори заедно не могат да породат нетривиални ФЗ, понеже в един ден, по едно и също време може да има повече от един изпит с еднаква продължителност.
+\(name\) пък не може да породи нетривиална ФЗ, понеже е напълно възможно изпит с едно и също време да се проведе повече от веднъж.
+\(code\) е първичния ключ на релацията и следователно релацията \(Exam\) е в НФБК, в частност е и в 3НФ.
+\subsection{За Faculty}
+Нетривиалните функционални зависимости са:
+\begin{align*}
+    code \to name, address \\
+    name \to code, address
+\end{align*}
+Понеже и \(\{code\}\) и \(\{name\}\) са кандидат ключове (в частност суперключове), то релацията е в НФБК, в частност е и в 3НФ.
+\subsection{За Application}
+Единствената нетривиална ФЗ е \(number, code \to date, session, grade\)
+и понеже \(\{number, code\}\) е първичен ключ, то \(Application\) е в НФБК, в частност е и в 3НФ.
+\section{SQL код за създаване на Базата данни - таблици и ограничения}
+\inputminted{sql}{create.sql}
+MySQL игнорира ограниченията от тип CHECK.
+За това създаваме тригери, които се изпълняват преди добавяне и обновяване
+и служат за валидация, че стойността на grade ще е в интервала \([2.0, 6.0]\).
+\end{document}
